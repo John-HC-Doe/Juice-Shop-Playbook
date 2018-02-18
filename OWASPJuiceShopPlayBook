@@ -1,0 +1,62 @@
+- hosts: webservers
+  gather_facts: no
+  remote_user: root
+  pre_tasks:
+    - name: update apt cache
+      raw: apt update
+      ignore_errors: yes
+    - name: install python2 for ansible
+      raw: test -e /usr/bin/python || (apt install -y python-minimal python-simplejson python-apt python-pip)
+      register: output
+      changed_when: output.stdout != ""
+    - name: test python2
+      ping:
+    - name: gathering facts
+      setup:
+  tasks:
+    - name: install git
+      apt:
+        name: git-all
+        state: latest
+      register: apt_result
+      retries: 9
+      until: apt_result | success
+    - name: install curl (in effort to obtain the latest version of nodejs)
+      apt:
+        name: curl
+        state: latest
+      register: apt_result
+      retries: 9
+      until: apt_result | success
+    - name: install build-essential (in effort to obtain the latest version of nodejs)
+      apt:
+        name: build-essential
+        state: latest
+      register: apt_result
+      retries: 9
+      until: apt_result | success
+    - name: install libssl-dev (in effort to obtain the latest version of nodejs)
+      apt:
+        name: libssl-dev
+        state: latest
+      register: apt_result
+      retries: 9
+      until: apt_result | success
+    - name: clone Juice Shop from forked source
+      git:
+        repo: https://github.com/John-HC-Doe/juice-shop.git
+        dest: /root/juice-shop
+        clone: yes
+        update: no
+    - name: copy NodeJSInstallation.sh
+      copy:
+       src: /home/user/NodeJSInstallation.sh
+       dest: /root/NodeJSInstallation.sh
+       force: yes
+    - name: execute the NodeJSInstallation.sh
+      shell: bash NodeJSInstallation.sh
+      args:
+        executable: /bin/bash
+        chdir: /root/
+      register: output
+      changed_when: output.stdout != ""

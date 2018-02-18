@@ -1,0 +1,83 @@
+- hosts: webservers
+  gather_facts: no
+  remote_user: root
+  pre_tasks:
+    - name: update apt cache
+      raw: apt update
+      ignore_errors: yes
+    - name: install python2 for ansible
+      raw: test -e /usr/bin/python || (apt install -y python-minimal python-simplejson python-apt python-pip)
+      register: output
+      changed_when: output.stdout != ""
+    - name: test python2
+      ping:
+    - name: gathering facts
+      setup:
+  tasks:
+    - name: install curl
+      apt:
+        name: curl
+        state: latest
+      register: apt_result
+      retries: 9
+      until: apt_result | success
+    - name: add the GPG key for the official Docker repository to the system
+      shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+      args:
+        executable: /bin/bash
+        chdir: /root/
+      register: output
+      changed_when: output.stdout != ""
+    - name: install software-properties-common
+      apt:
+        name: software-properties-common
+        state: latest
+      register: apt_result
+      retries: 9
+      until: apt_result | success
+    - name: add the Docker repository to APT sources
+      shell: add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+      args:
+        executable: /bin/bash
+        chdir: /root/
+      register: output
+      changed_when: output.stdout != ""
+    - name: re-update apt cache
+      raw: apt update
+      ignore_errors: yes
+    - name: ensure installation from the Docker repo, instead of the default Ubuntu 16.04 repo
+      shell: apt-cache policy docker-ce
+      args:
+        executable: /bin/bash
+        chdir: /root/
+      register: output
+      changed_when: output.stdout != ""
+    - name: install docker-ce
+      apt:
+        name: docker-ce
+        state: latest
+      register: apt_result
+      retries: 9
+      until: apt_result | success
+    - name: check docker status
+      shell: systemctl status docker
+      args:
+        executable: /bin/bash
+        chdir: /root/
+      register: output
+      changed_when: output.stdout != ""
+    - name: docker pull the Juice Shop
+      shell: docker pull bkimminich/juice-shop
+      args:
+        executable: /bin/bash
+        chdir: /root/
+      register: output
+      changed_when: output.stdout != ""
+    - name: docker run the Juice Shop
+      shell: docker run --rm -p 3000:3000 bkimminich/juice-shop
+      args:
+        executable: /bin/bash
+        chdir: /root/
+      register: output
+      changed_when: output.stdout != ""
+
