@@ -1,0 +1,57 @@
+- hosts: webservers
+  gather_facts: no
+  remote_user: root
+  pre_tasks:
+    - name: update apt cache
+      raw: apt update
+      ignore_errors: yes
+    - name: install python2 for ansible
+      raw: test -e /usr/bin/python || (apt install -y python-minimal python-simplejson python-apt python-pip)
+      register: output
+      changed_when: output.stdout != ""
+    - name: test python2
+      ping:
+    - name: gathering facts
+      setup:
+  tasks:
+    - name: install curl (in effort to obtain the latest version of nodejs)
+      apt:
+        name: curl
+        state: latest
+      register: apt_result
+      retries: 9
+      until: apt_result | success
+    - name: install build-essential (in effort to obtain the latest version of nodejs)
+      apt:
+        name: build-essential
+        state: latest
+      register: apt_result
+      retries: 9
+      until: apt_result | success
+    - name: install libssl-dev (in effort to obtain the latest version of nodejs)
+      apt:
+        name: libssl-dev
+        state: latest
+      register: apt_result
+      retries: 9
+      until: apt_result | success
+    - name: copy NodeJSDistribution.sh
+      copy:
+       src: /home/user/NodeJSDistribution.sh
+       dest: /root/NodeJSDistribution.sh
+       force: yes
+    - name: make new directory for the juice-shop
+      file:
+        path: /root/juice-shop
+        state: directory
+    - name: download the packaged distributions juice-shop-6.4.2_node8_linux_x64.tgz
+      get_url:
+        url: https://github.com/bkimminich/juice-shop/releases/download/v6.4.2/juice-shop-6.4.2_node8_linux_x64.tgz
+        dest: /root/juice-shop/juice-shop-6.4.2_node8_linux_x64.tgz
+    - name: execute the NodeJSDistribution.sh
+      shell: bash NodeJSDistribution.sh
+      args:
+        executable: /bin/bash
+        chdir: /root/
+      register: output
+      changed_when: output.stdout != ""

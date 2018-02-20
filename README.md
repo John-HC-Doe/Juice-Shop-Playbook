@@ -8,6 +8,14 @@ Ansible playbook which takes <b>Docker Container</b> approach, as suggested with
 Prerequisites:<br>
 <b>root</b> acount at the target remote server needs to be accessible through ssh, with ssh key.<br>
 <br>
+## File OWASPJuiceDistributionPlayBook
+Ansible playbook which takes <b>Packaged Distributions</b> approach, as suggested within the <a href="https://github.com/bkimminich/juice-shop">juice-shop</a> README.md page.<br>
+<br>
+This playbook requires additional bash script file (NodeJSDistribution.sh) to be copied into the remote target server and executed on the remote target server.<br>
+<br>
+Prerequisites:<br>
+<b>root</b> acount at the target remote server needs to be accessible through ssh, with ssh key.<br>
+<br>
 ## File OWASPJuiceShopPlaybook
 Ansible playbook which takes <b>From Sources</b> approach, as suggested within the <a href="https://github.com/bkimminich/juice-shop">juice-shop</a> README.md page.<br>
 <br>
